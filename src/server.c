@@ -39,14 +39,18 @@ int main(int argc, char const* argv[])
     // Prepare for listening
     int max_conns = 5;
     if (listen(server_fd, max_conns) < 0) {
-        perror("listen");
+        perror("socket listen failed");
         exit(EXIT_FAILURE);
     }
 
     // Await for connection
     while ((recv_socket = accept(server_fd, (struct sockaddr*)&address, (socklen_t*)&addrlen)) >= 0) {
-        valread = read(recv_socket, recv_buffer, BUFF_SIZE);
-        sprintf("Server received: %s\n", recv_buffer);
+        if ((valread = read(recv_socket, recv_buffer, BUFF_SIZE)) < 0) {
+                perror("could not receive from socket");
+                exit(EXIT_FAILURE);
+        }
+        printf("Server received: %s\n", recv_buffer);
+        send(recv_socket, hello_msg, strlen(hello_msg), 0);
     }
     close(recv_socket);
 
